@@ -20,8 +20,6 @@ let red = 255, green = 0, blue = 0;
 let brightness = 100; // Default brightness
 
 // Test configuration
-const TEST_DELAY_MS = 500; // Czas w ms na obserwację efektu każdej komendy testowej
-const TEST_COLOR = [0, 255, 0]; // Kolor bazowy dla testów (czerwony)
 
 if (command === 'rgb') {
   if (args.length < 4) {
@@ -64,13 +62,13 @@ async function cleanup(peripheral) {
   process.exit(0);
 }
 
-// Format komendy, który zadziałał podczas testów
-// 📦 Dane: [0x7e, 0x07, 0x05, 0x03, 0xff, 0x00, 0x00, 0x10, 0xef]
+// Command format that worked during testing
+// Data: [0x7e, 0x07, 0x05, 0x03, 0xff, 0x00, 0x00, 0x10, 0xef]
 function makeCommand(r, g, b) {
   return Buffer.from([0x7E, 0x07, 0x05, 0x03, r, g, b, 0x10, 0xEF]);
 }
 
-// Definicje komend
+// Command definitions
 const commands = {
   red: makeCommand(255, 0, 0),
   green: makeCommand(0, 255, 0),
@@ -80,7 +78,7 @@ const commands = {
   rgb: (r, g, b) => makeCommand(r, g, b)
 };
 
-// Funkcja wysyłająca komendę do urządzenia
+// Function to send command to device
 async function sendCommand(characteristic, command, description) {
   try {
     await characteristic.writeAsync(command, true);
@@ -96,13 +94,13 @@ async function sendCommand(characteristic, command, description) {
   }
 }
 
-// Główna funkcja kontrolująca LED
+// Main LED control function
 async function controlLed(peripheral) {
   try {
-    // Łączymy się z urządzeniem
+    // Connect to device
     await peripheral.connectAsync();
     
-    // Odkrywamy charakterystyki
+    // Discover characteristics
     const { characteristics } = await peripheral.discoverSomeServicesAndCharacteristicsAsync(
       [SERVICE_UUID],
       [CHARACTERISTIC_UUID]
@@ -114,35 +112,35 @@ async function controlLed(peripheral) {
     
     const char = characteristics[0];
     
-    // Wykonujemy odpowiednią operację w zależności od komendy
+    // Execute appropriate operation based on command
     switch (command) {
       case 'on':
-        // Włączamy białe światło
+        // Turn on white light
         await sendCommand(char, commands.white, "Turn On (White)");
         break;
 
       case 'off':
-        // Wyłączamy LED
+        // Turn off LED
         await sendCommand(char, commands.off, "Turn Off");
         break;
         
       case 'red':
-        // Ustawiamy czerwony kolor
+        // Set red color
         await sendCommand(char, commands.red, "Set Red");
         break;
         
       case 'green':
-        // Ustawiamy zielony kolor
+        // Set green color
         await sendCommand(char, commands.green, "Set Green");
         break;
         
       case 'blue':
-        // Ustawiamy niebieski kolor
+        // Set blue color
         await sendCommand(char, commands.blue, "Set Blue");
         break;
         
       case 'rgb':
-        // Ustawiamy własny kolor RGB z uwzględnieniem jasności
+        // Set custom RGB color with brightness
         const [finalR, finalG, finalB] = calculateRgbWithBrightness(red, green, blue, brightness);
         await sendCommand(
           char,
@@ -166,10 +164,10 @@ async function controlLed(peripheral) {
         return;
     }
     
-    // Czekamy chwilę przed rozłączeniem
+    // Wait a moment before disconnecting
     await delay(500);
     
-    // Rozłączamy się
+    // Disconnect
     await cleanup(peripheral);
     
   } catch (err) {
@@ -196,7 +194,7 @@ noble.on('discover', async (peripheral) => {
   }
 });
 
-// --- New Helper Function ---
+// Helper function for RGB brightness calculation
 function calculateRgbWithBrightness(r, g, b, brightnessPercent) {
   if (brightnessPercent <= 0) {
     return [0, 0, 0];
