@@ -1,6 +1,6 @@
 # ELK-BLEDOM LED Controller
 
-A set of tools for controlling ELK-BLEDOM LED strips via Bluetooth. These scripts allow you to turn on/off LEDs and control their colors.
+A set of tools for controlling ELK-BLEDOM LED strips via Bluetooth. These scripts allow you to turn on/off LEDs, control their colors, and create various lighting effects.
 
 ## Problem & Solution
 
@@ -35,12 +35,26 @@ Available commands:
 - `blue` - set blue color
 - `rgb R G B [B]` - set custom RGB color (0-255) and optional brightness (0-100, default 100)
 
+Animation commands:
+- `pulse R G B [B]` - smooth fade in/out effect
+- `smooth R G B [FROM] [TO]` - smooth transition between brightness levels
+- `flash R G B [B]` - quick on/off blinking
+- `rainbow [B]` - cycle through rainbow colors
+- `running R G B [B]` - moving light effect through color transitions
+
 Usage examples:
 ```
 node led-control.js on      # turn on LEDs
 node led-control.js red     # set red color
 node led-control.js rgb 255 0 255  # set purple color
 node led-control.js off     # turn off LEDs
+
+# Animation examples
+node led-control.js pulse 255 0 0 50  # red pulsing at 50% brightness
+node led-control.js smooth 0 255 0 0 100  # green smooth transition from 0% to 100%
+node led-control.js flash 0 0 255 75  # blue flashing at 75% brightness
+node led-control.js rainbow 100  # rainbow effect at full brightness
+node led-control.js running 255 255 255  # running white light effect
 ```
 
 ## Discovering Brightness Control
@@ -65,6 +79,20 @@ Based on these findings, an optional fourth parameter for **brightness** (0-100%
 - If brightness is 0, it sends `(0, 0, 0)`.
 - Otherwise, it scales the desired color channels into the device's effective brightness range (`1` to `228`), multiplied by the requested brightness percentage.
 - This allows for intuitive control over both color and its intensity, mapping the user's 0-100% brightness input to the controller's actual operational range.
+
+## Animation Details
+
+The controller supports several animation effects:
+
+1. **Pulse** - Smoothly fades the selected color in and out. The animation takes 2 seconds by default and uses 20 steps for smooth transitions.
+
+2. **Smooth** - Creates a smooth transition between two brightness levels for the selected color. Useful for creating gradual lighting changes. By default transitions from 0% to 100% brightness over 2 seconds.
+
+3. **Flash** - Creates a quick on/off blinking effect with the selected color. By default performs 5 flashes, each lasting 200ms.
+
+4. **Rainbow** - Cycles through all colors of the rainbow. The animation takes 5 seconds to complete a full cycle by default.
+
+5. **Running Light** - Creates a moving light effect by transitioning through different colors. The sequence includes primary colors (red, green, blue) and their combinations (yellow, cyan, magenta, white).
 
 ## Compatible Devices
 
